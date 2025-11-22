@@ -29,7 +29,7 @@ export interface AnalysisResult {
 
 export async function analyzeCV(text: string): Promise<AnalysisResult> {
   if (!API_KEY) {
-    throw new Error("Chave de API do Gemini não configurada. Verifique o arquivo .env.");
+    throw new Error("Chave de API não configurada. Local: verifique .env. Produção: verifique GitHub Secrets (VITE_GEMINI_API_KEY).");
   }
 
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -40,7 +40,8 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
        - IMPORTANTE: NÃO sugira alterações em dados pessoais imutáveis como nome, idade, data de nascimento, gênero ou nacionalidade.
        - Foque estritamente em: experiência profissional, habilidades, educação, formatação, palavras-chave e impacto.
     2. Uma estimativa de salário mensal em Reais (R$) baseada no mercado brasileiro para este perfil.
-    3. 3 sugestões de vagas compatíveis (Título, Empresa Fictícia ou Genérica, Localização, e termos de busca para Indeed/Glassdoor).
+    3. 3 sugestões de vagas compatíveis (Título, Empresa Fictícia ou Genérica, Localização (ESTADO/UF), e termos de busca para Indeed/Glassdoor).
+       - IMPORTANTE: Para a localização, use o ESTADO (ex: São Paulo, Rio de Janeiro) ao invés de cidade específica, para ampliar a busca.
 
     Currículo:
     ${text}
@@ -91,11 +92,13 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
     const data = JSON.parse(jsonString);
 
     // Transform job matches to include real URLs based on search queries
+    // Indeed: l=State
+    // Glassdoor: locKeyword=State
     const jobs = data.jobMatches.map((job: any) => ({
       ...job,
       url: job.source === 'Indeed'
-        ? `https://br.indeed.com/jobs?q=${encodeURIComponent(job.searchQuery)}`
-        : `https://www.glassdoor.com.br/Job/jobs.htm?sc.keyword=${encodeURIComponent(job.searchQuery)}`,
+        ? `https://br.indeed.com/jobs?q=${encodeURIComponent(job.searchQuery)}&l=${encodeURIComponent(job.location)}`
+        : `https://www.glassdoor.com.br/Job/jobs.htm?sc.keyword=${encodeURIComponent(job.searchQuery)}&locKeyword=${encodeURIComponent(job.location)}`,
       matchScore: Math.floor(Math.random() * (99 - 80) + 80) // Simulate match score
     }));
 

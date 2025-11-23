@@ -49,6 +49,7 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
        - IMPORTANTE: Para cada conselho, forneça um "suggestedText": um texto profissional pronto para ser copiado e colado no currículo para aplicar a melhoria ou destacar o ponto forte.
        - NÃO sugira alterações em dados pessoais imutáveis.
     2. Uma estimativa de salário mensal em Reais (R$) baseada no mercado brasileiro.
+       - SEJA REALISTA: Não limite artificialmente o valor. Para cargos de alta gestão ou TI sênior, valores acima de R$ 20.000,00 ou R$ 30.000,00 são comuns e devem ser refletidos se o currículo justificar.
     3. 3 sugestões de cargos/vagas compatíveis para buscar no Indeed.
        - Forneça APENAS o Título do cargo e os termos de busca ideais.
        - NÃO invente nomes de empresas ou locais.

@@ -7,33 +7,44 @@ import { DocumentEditor } from './components/DocumentEditor';
 import { AdviceSection } from './components/AdviceSection';
 import { SalaryValuation } from './components/SalaryValuation';
 import { JobMatches } from './components/JobMatches';
-import { Loader2 } from 'lucide-react';
-
-// Mock data removed as requested
+import { ExtraInsights } from './components/ExtraInsights';
+import { Loader2, Send } from 'lucide-react';
+import { useStore } from './lib/store';
+import { sendToTalentAds } from './lib/talentAds';
 
 function App() {
-  const [tokens, setTokens] = useState(5);
   const [file, setFile] = useState<File | null>(null);
+  const [cvContent, setCvContent] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [cvContent, setCvContent] = useState('');
   const [advice, setAdvice] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [valuation, setValuation] = useState(0);
+  const [extraStudies, setExtraStudies] = useState<any[]>([]);
+  const [interviewTips, setInterviewTips] = useState<any[]>([]);
+
+  const { spendTokens, addTokens } = useStore();
 
   const handleFileUpload = async (uploadedFile: File) => {
+    // Check if user has tokens before processing
+    if (!spendTokens(1)) {
+      alert("Você não tem tokens suficientes para realizar uma nova análise. Por favor, adquira mais tokens.");
+      return;
+    }
+
     setFile(uploadedFile);
     setIsAnalyzing(true);
 
     try {
       const content = await parseFile(uploadedFile);
       setCvContent(content);
-      setTokens(prev => Math.max(0, prev - 1));
 
       // Perform AI Analysis
       const analysis = await analyzeCV(content);
       setAdvice(analysis.advice);
       setJobs(analysis.jobMatches);
       setValuation(analysis.valuation);
+      setExtraStudies(analysis.extraStudies || []);
+      setInterviewTips(analysis.interviewTips || []);
 
     } catch (error) {
       console.error("Erro ao processar arquivo:", error);
@@ -46,16 +57,40 @@ function App() {
   };
 
   const handleBuyTokens = () => {
-    // Mock payment flow
-    const amount = window.prompt("Quantos tokens deseja comprar? (Simulação)");
-    if (amount && !isNaN(Number(amount))) {
-      setTokens(prev => prev + Number(amount));
+    // Mock Netcred Payment Flow
+    const confirmed = window.confirm("Você será redirecionado para o gateway de pagamento da Netcred. Deseja continuar?");
+    if (confirmed) {
+      // Simulate processing delay
+      setTimeout(() => {
+        const amount = window.prompt("Simulação Netcred: Pagamento Aprovado!\n\nQuantos tokens foram adquiridos?", "10");
+        if (amount && !isNaN(Number(amount))) {
+          addTokens(Number(amount));
+          alert(`Sucesso! ${amount} tokens foram adicionados à sua carteira via Netcred.`);
+        }
+      }, 1000);
+    }
+  };
+
+  const handleSendToTalentAds = async () => {
+    if (!spendTokens(3)) {
+      alert("Você precisa de 3 tokens para enviar seu currículo para o Talent Ads.");
+      return;
+    }
+
+    const confirmed = window.confirm("Deseja enviar seu currículo para a base de talentos do Talent Ads? (Custo: 3 Tokens)");
+    if (!confirmed) return;
+
+    try {
+      await sendToTalentAds(cvContent);
+      alert("Currículo enviado com sucesso para o Talent Ads! Recrutadores entrarão em contato.");
+    } catch (error) {
+      alert("Erro ao enviar currículo.");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <Header tokens={tokens} onBuyTokens={handleBuyTokens} />
+      <Header onBuyTokens={handleBuyTokens} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!file ? (
@@ -88,8 +123,18 @@ function App() {
 
                 {/* Right Column: Analysis & Insights */}
                 <div className="lg:col-span-5 space-y-6">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSendToTalentAds}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm font-medium"
+                    >
+                      <Send className="w-4 h-4" />
+                      Enviar para Talent Ads
+                    </button>
+                  </div>
                   <SalaryValuation valuation={valuation} />
                   <AdviceSection advice={advice} />
+                  <ExtraInsights studies={extraStudies} tips={interviewTips} />
                   <JobMatches jobs={jobs} />
                 </div>
               </div>

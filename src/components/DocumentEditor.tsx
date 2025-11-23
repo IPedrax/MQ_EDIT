@@ -1,9 +1,11 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
+import UnderlineExtension from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import { EditorToolbar } from './EditorToolbar';
 import { useEffect } from 'react';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface DocumentEditorProps {
     content: string;
@@ -14,7 +16,7 @@ export function DocumentEditor({ content, onChange }: DocumentEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit,
-            Underline,
+            UnderlineExtension,
             TextAlign.configure({
                 types: ['heading', 'paragraph'],
             }),
@@ -33,13 +35,26 @@ export function DocumentEditor({ content, onChange }: DocumentEditorProps) {
     // Update editor content if external content changes (e.g. file upload)
     useEffect(() => {
         if (editor && content !== editor.getHTML()) {
-            // Only update if content is significantly different to avoid cursor jumps
-            // Ideally we'd diff, but for now we just check if it's empty or completely replaced
             if (editor.isEmpty || !editor.isFocused) {
                 editor.commands.setContent(content);
             }
         }
     }, [content, editor]);
+
+    const handleDownload = () => {
+        const element = document.querySelector('.ProseMirror');
+        if (!element) return;
+
+        const opt = {
+            margin: [10, 10],
+            filename: 'meu-curriculo-otimizado.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        (html2pdf as any)().set(opt).from(element).save();
+    };
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[700px]">
@@ -48,7 +63,7 @@ export function DocumentEditor({ content, onChange }: DocumentEditorProps) {
                 <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Modo Edição</span>
             </div>
 
-            <EditorToolbar editor={editor} />
+            <EditorToolbar editor={editor} onDownload={handleDownload} />
 
             <div className="flex-1 overflow-y-auto bg-gray-100 p-8 cursor-text" onClick={() => editor?.chain().focus().run()}>
                 <div className="max-w-[210mm] mx-auto bg-white shadow-lg min-h-[297mm]">

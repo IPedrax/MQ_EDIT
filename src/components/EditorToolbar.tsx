@@ -11,15 +11,17 @@ import {
     Heading1,
     Heading2,
     Undo,
-    Redo
+    Redo,
+    Download
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface EditorToolbarProps {
     editor: Editor | null;
+    onDownload?: () => void;
 }
 
-export function EditorToolbar({ editor }: EditorToolbarProps) {
+export function EditorToolbar({ editor, onDownload }: EditorToolbarProps) {
     if (!editor) {
         return null;
     }
@@ -158,6 +160,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                     <ListOrdered className="w-4 h-4" />
                 </button>
             </div>
+
+            {onDownload && (
+                <>
+                    <div className="w-px h-6 bg-gray-200 mx-1" />
+                    <button
+                        onClick={onDownload}
+                        className="p-2 text-gray-600 hover:bg-gray-100 rounded hover:text-primary transition-colors"
+                        title="Baixar PDF"
+                    >
+                        <Download className="w-4 h-4" />
+                    </button>
+                </>
+            )}
         </div>
     );
 }

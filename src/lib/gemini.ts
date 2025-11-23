@@ -14,16 +14,25 @@ export interface AnalysisResult {
     type: 'improvement' | 'strength' | 'warning';
     title: string;
     description: string;
+    suggestedText: string;
   }[];
   valuation: number;
   jobMatches: {
     id: string;
     title: string;
-    company: string;
-    location: string;
-    source: 'Indeed' | 'Glassdoor';
+    source: 'Indeed';
     url: string;
     matchScore: number;
+  }[];
+  extraStudies: {
+    id: string;
+    title: string;
+    description: string;
+  }[];
+  interviewTips: {
+    id: string;
+    title: string;
+    description: string;
   }[];
 }
 
@@ -37,40 +46,42 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
   const prompt = `
     Você é um especialista em RH e recrutamento. Analise o seguinte currículo e forneça:
     1. 3 conselhos práticos (um de melhoria, um ponto forte, um alerta).
-       - IMPORTANTE: NÃO sugira alterações em dados pessoais imutáveis como nome, idade, data de nascimento, gênero ou nacionalidade.
-       - Foque estritamente em: experiência profissional, habilidades, educação, formatação, palavras-chave e impacto.
-    2. Uma estimativa de salário mensal em Reais (R$) baseada no mercado brasileiro para este perfil.
-    3. 3 sugestões de vagas compatíveis (Título, Empresa Fictícia ou Genérica, Localização (ESTADO/UF), e termos de busca para Indeed/Glassdoor).
-       - IMPORTANTE: Para a localização, use o ESTADO (ex: São Paulo, Rio de Janeiro) ao invés de cidade específica, para ampliar a busca.
+       - IMPORTANTE: Para cada conselho, forneça um "suggestedText": um texto profissional pronto para ser copiado e colado no currículo para aplicar a melhoria ou destacar o ponto forte.
+       - NÃO sugira alterações em dados pessoais imutáveis.
+    2. Uma estimativa de salário mensal em Reais (R$) baseada no mercado brasileiro.
+    3. 3 sugestões de cargos/vagas compatíveis para buscar no Indeed.
+       - Forneça APENAS o Título do cargo e os termos de busca ideais.
+       - NÃO invente nomes de empresas ou locais.
+    4. 3 sugestões de estudos extras ou certificações.
+    5. 3 dicas práticas para entrevista.
 
     Currículo:
     ${text}
 
-    Responda APENAS com um JSON válido no seguinte formato, sem markdown e sem comentários:
+    Responda APENAS com um JSON válido no seguinte formato:
     {
       "advice": [
-        { "id": "1", "type": "improvement", "title": "...", "description": "..." },
-        { "id": "2", "type": "strength", "title": "...", "description": "..." },
-        { "id": "3", "type": "warning", "title": "...", "description": "..." }
+        { 
+          "id": "1", 
+          "type": "improvement", 
+          "title": "...", 
+          "description": "...", 
+          "suggestedText": "Texto pronto para o CV..." 
+        }
       ],
       "valuation": 12345.00,
       "jobMatches": [
         { 
           "id": "1", 
           "title": "...", 
-          "company": "...", 
-          "location": "...", 
-          "source": "Indeed", 
-          "searchQuery": "..." 
-        },
-        { 
-          "id": "2", 
-          "title": "...", 
-          "company": "...", 
-          "location": "...", 
-          "source": "Glassdoor", 
           "searchQuery": "..." 
         }
+      ],
+      "extraStudies": [
+        { "id": "1", "title": "...", "description": "..." }
+      ],
+      "interviewTips": [
+        { "id": "1", "title": "...", "description": "..." }
       ]
     }
   `;
@@ -82,7 +93,6 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
 
     console.log("Gemini Raw Response:", responseText);
 
-    // Robust JSON extraction: find the first '{' and the last '}'
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("Não foi possível extrair JSON da resposta do Gemini.");
@@ -91,15 +101,11 @@ export async function analyzeCV(text: string): Promise<AnalysisResult> {
     const jsonString = jsonMatch[0];
     const data = JSON.parse(jsonString);
 
-    // Transform job matches to include real URLs based on search queries
-    // Indeed: l=State
-    // Glassdoor: locKeyword=State
     const jobs = data.jobMatches.map((job: any) => ({
       ...job,
-      url: job.source === 'Indeed'
-        ? `https://br.indeed.com/jobs?q=${encodeURIComponent(job.searchQuery)}&l=${encodeURIComponent(job.location)}`
-        : `https://www.glassdoor.com.br/Job/jobs.htm?sc.keyword=${encodeURIComponent(job.searchQuery)}&locKeyword=${encodeURIComponent(job.location)}`,
-      matchScore: Math.floor(Math.random() * (99 - 80) + 80) // Simulate match score
+      source: 'Indeed',
+      url: `https://br.indeed.com/jobs?q=${encodeURIComponent(job.searchQuery)}`,
+      matchScore: Math.floor(Math.random() * (99 - 80) + 80)
     }));
 
     return {

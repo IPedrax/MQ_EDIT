@@ -1,65 +1,52 @@
-import { Briefcase, ExternalLink, MapPin } from 'lucide-react';
+import { Briefcase, ExternalLink, Search } from 'lucide-react';
+import { Carousel } from './Carousel';
 
-interface Job {
+interface JobMatch {
     id: string;
     title: string;
-    company: string;
-    location: string;
-    source: 'Indeed' | 'Glassdoor';
+    source: string;
     url: string;
     matchScore: number;
 }
 
 interface JobMatchesProps {
-    jobs: Job[];
+    jobs: JobMatch[];
 }
 
 export function JobMatches({ jobs }: JobMatchesProps) {
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-                <Briefcase className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold text-gray-900">Vagas Compatíveis</h3>
-            </div>
+    if (!jobs.length) return null;
 
-            <div className="grid gap-3">
-                {jobs.map((job) => (
+    return (
+        <Carousel
+            title="Vagas Compatíveis (Indeed)"
+            icon={<Briefcase className="w-5 h-5 text-blue-600" />}
+            items={jobs}
+            renderItem={(job) => (
+                <div className="p-6 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 className="font-bold text-lg text-gray-900">{job.title}</h4>
+                            <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                                <Search className="w-3 h-3" />
+                                <span>Busca sugerida no Indeed</span>
+                            </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${job.matchScore >= 90 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                            {job.matchScore}% Match
+                        </span>
+                    </div>
+
                     <a
-                        key={job.id}
                         href={job.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md hover:border-primary/30 transition-all group"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h4 className="font-medium text-gray-900 group-hover:text-primary transition-colors">
-                                    {job.title}
-                                </h4>
-                                <div className="text-sm text-gray-500 mt-1">{job.company}</div>
-
-                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                                    <div className="flex items-center gap-1">
-                                        <MapPin className="w-3 h-3" />
-                                        {job.location}
-                                    </div>
-                                    <span className={`px-2 py-0.5 rounded-full ${job.source === 'Indeed' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
-                                        }`}>
-                                        {job.source}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-end gap-2">
-                                <span className="text-sm font-bold text-green-600">
-                                    {job.matchScore}% Match
-                                </span>
-                                <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                            </div>
-                        </div>
+                        Buscar Vaga <ExternalLink className="w-4 h-4" />
                     </a>
-                ))}
-            </div>
-        </div>
+                </div>
+            )}
+        />
     );
 }

@@ -40,12 +40,20 @@ export function SalaryValuation({ valuation }: SalaryValuationProps) {
             const timer = setInterval(() => {
                 if (popup.closed) {
                     clearInterval(timer);
-                    login(); // Set logged in state
+                    login({
+                        name: 'Usuário Simulado',
+                        email: 'usuario@exemplo.com',
+                        picture: ''
+                    }); // Set logged in state
                 }
             }, 500);
         } else {
             // Fallback if popup blocked
-            login();
+            login({
+                name: 'Usuário Simulado',
+                email: 'usuario@exemplo.com',
+                picture: ''
+            });
         }
     };
 

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@react-oauth/google": "^0.12.2",
     "@tiptap/extension-text-align": "^3.11.0",
     "@tiptap/extension-underline": "^3.11.0",
     "@tiptap/react": "^3.11.0",
@@ -18,11 +19,13 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
     "html2pdf.js": "^0.12.1",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.554.0",
     "mammoth": "^1.11.0",
     "pdfjs-dist": "^5.4.394",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "recharts": "^3.5.1",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.8"
   },

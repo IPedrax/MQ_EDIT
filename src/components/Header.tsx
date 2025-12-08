@@ -1,5 +1,6 @@
 import { Coins, CreditCard } from 'lucide-react';
 import { useStore } from '../lib/store';
+import { LoginButton } from './LoginButton';
 
 interface HeaderProps {
     onBuyTokens: () => void;
@@ -36,6 +37,8 @@ export function Header({ onBuyTokens }: HeaderProps) {
                         <CreditCard className="w-4 h-4" />
                         <span>Recarregar via Netcred</span>
                     </button>
+
+                    <LoginButton />
                 </div>
             </div>
         </header>

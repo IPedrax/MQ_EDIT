@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import type { CVData } from './types/cv';
 import { parseFile } from './lib/fileParser';
 import { analyzeCV } from './lib/gemini';
 import { Header } from './components/Header';
 import { FileUpload } from './components/FileUpload';
-import { DocumentEditor } from './components/DocumentEditor';
+// import { DocumentEditor } from './components/DocumentEditor';
+import { CVBuilder } from './components/cv/CVBuilder';
 import { AdviceSection } from './components/AdviceSection';
 import { SalaryValuation } from './components/SalaryValuation';
 import { JobMatches } from './components/JobMatches';
+import { JobComparison } from './components/JobComparison';
 import { ExtraInsights } from './components/ExtraInsights';
 import { Loader2, Send } from 'lucide-react';
 import { useStore } from './lib/store';
@@ -21,6 +24,8 @@ function App() {
   const [valuation, setValuation] = useState(0);
   const [extraStudies, setExtraStudies] = useState<any[]>([]);
   const [interviewTips, setInterviewTips] = useState<any[]>([]);
+  const [spiderGraph, setSpiderGraph] = useState<any[]>([]);
+  const [cvData, setCvData] = useState<CVData | undefined>(undefined);
 
   const { spendTokens, addTokens } = useStore();
 
@@ -45,6 +50,10 @@ function App() {
       setValuation(analysis.valuation);
       setExtraStudies(analysis.extraStudies || []);
       setInterviewTips(analysis.interviewTips || []);
+      setSpiderGraph(analysis.spiderGraph || []);
+      if (analysis.cvData) {
+        setCvData(analysis.cvData);
+      }
 
     } catch (error) {
       console.error("Erro ao processar arquivo:", error);
@@ -117,8 +126,9 @@ function App() {
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Left Column: Document Editor */}
-                <div className="lg:col-span-7 space-y-6">
-                  <DocumentEditor content={cvContent} onChange={setCvContent} />
+                <div className="lg:col-span-7 space-y-6 h-[800px]">
+                  <CVBuilder initialData={cvData} />
+                  <JobComparison cvData={cvData} suggestedJobs={jobs} initialSpiderGraph={spiderGraph} />
                 </div>
 
                 {/* Right Column: Analysis & Insights */}

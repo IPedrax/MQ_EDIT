@@ -18,7 +18,7 @@ export function JobMatches({ jobs }: JobMatchesProps) {
 
     return (
         <Carousel
-            title="Vagas Compatíveis (Indeed)"
+            title="Vagas Recomendadas pela IA"
             icon={<Briefcase className="w-5 h-5 text-blue-600" />}
             items={jobs}
             renderItem={(job) => (
